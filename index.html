@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotiCentre 대시보드</title>
+<style>
+:root {
+  --bg:       #111214;
+  --bg2:      #1c1d21;
+  --bg3:      #26272c;
+  --bg4:      #2f3037;
+  --border:   #35363d;
+  --border2:  #44454e;
+  --text:     #e2e4e9;
+  --text2:    #878a96;
+  --text3:    #565861;
+  --accent:   #f07340;
+  --accent2:  #ff8f5e;
+  --green:    #30c46a;
+  --red:      #f24848;
+  --blue:     #5b8dee;
+  --purple:   #9b72f5;
+  --yellow:   #ffc53d;
+  --r:        10px;
+  --r2:       14px;
+  --shadow:   0 4px 24px rgba(0,0,0,.45);
+  --shadow2:  0 2px 10px rgba(0,0,0,.3);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ══════════ LAYOUT ══════════ */
+.wrap { max-width: 1600px; margin: 0 auto; padding: 28px 32px; }
+
+/* ══════════ TOPBAR ══════════ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-img { height: 30px; object-fit: contain; display: block; }
+.logo-name { font-size: 15px; font-weight: 800; letter-spacing: -.3px; color: var(--text2); }
+.logo-name span { color: var(--accent2); }
+.divider-v { width: 1px; height: 24px; background: var(--border); }
+.topbar-sub { font-size: 12px; color: var(--text2); }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+}
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* ══════════ TABS ══════════ */
+.tabs {
+  display: flex; gap: 0;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 4px; width: fit-content;
+  margin-bottom: 20px;
+}
+.tab {
+  padding: 8px 22px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; background: none; color: var(--text2);
+  transition: all .2s; letter-spacing: -.1px;
+}
+.tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; box-shadow: 0 2px 10px rgba(240,115,64,.35);
+}
+.tab:not(.active):hover { color: var(--text); background: var(--bg3); }
+
+/* ══════════ FILTER ══════════ */
+.filter-bar {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 18px 22px; margin-bottom: 20px;
+  box-shadow: var(--shadow2);
+}
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .7px;
+}
+.inp-base {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 13px; padding: 8px 12px; outline: none;
+  font-family: inherit; transition: border-color .15s, box-shadow .15s;
+}
+.inp-base:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(240,115,64,.15); }
+input[type="date"].inp-base { min-width: 136px; }
+input[type="text"].inp-base { min-width: 180px; }
+select.inp-base { min-width: 90px; cursor: pointer; }
+.ft-badge {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; color: var(--text2); white-space: nowrap;
+}
+.ft-badge strong { color: var(--accent); }
+
+.btn {
+  padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 700;
+  cursor: pointer; border: none; transition: all .15s; letter-spacing: -.1px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; box-shadow: 0 2px 10px rgba(240,115,64,.3);
+}
+.btn-primary:hover { box-shadow: 0 4px 16px rgba(240,115,64,.45); transform: translateY(-1px); }
+.btn-ghost {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+}
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+/* ══════════ STAT CARDS ══════════ */
+.cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px; margin-bottom: 20px;
+}
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); padding: 18px 20px; position: relative; overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+.card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.card.c-orange::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.card.c-green::before  { background: linear-gradient(90deg, var(--green), #20e06f); }
+.card.c-blue::before   { background: linear-gradient(90deg, var(--blue), #7eb8ff); }
+.card.c-purple::before { background: linear-gradient(90deg, var(--purple), #c4a0ff); }
+.card-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+.card-value { font-size: 30px; font-weight: 900; line-height: 1; letter-spacing: -1px; }
+.card-sub   { font-size: 11px; color: var(--text2); margin-top: 5px; }
+.c-orange .card-value { color: var(--accent2); }
+.c-green  .card-value { color: var(--green); }
+.c-blue   .card-value { color: var(--blue); }
+.c-purple .card-value { color: var(--purple); }
+
+/* ══════════ TABLE WRAP ══════════ */
+.table-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r2); overflow: hidden; box-shadow: var(--shadow2);
+}
+.table-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 22px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--bg3) 0%, var(--bg2) 100%);
+}
+.table-header-title { font-size: 14px; font-weight: 800; letter-spacing: -.2px; }
+.total-badge { font-size: 12px; color: var(--text2); }
+.total-badge strong { color: var(--accent2); font-weight: 700; }
+
+.tbl-scroll { overflow-x: auto; cursor: grab; user-select: none; }
+.tbl-scroll.dragging { cursor: grabbing; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+thead th {
+  background: var(--bg3); color: var(--text3); font-size: 10px;
+  font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--border);
+  white-space: nowrap; user-select: none;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .12s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg3); }
+tbody tr:hover .preview-hint { opacity: 1; }
+tbody td { padding: 13px 16px; vertical-align: middle; font-size: 13px; }
+td.mono { font-family: 'Courier New', monospace; font-size: 12px; color: var(--text2); }
+td.bold { font-weight: 600; }
+
+.preview-hint {
+  opacity: 0; font-size: 10px; color: var(--accent); font-weight: 600;
+  transition: opacity .15s; white-space: nowrap;
+}
+
+/* 상태 뱃지 */
+.status {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  white-space: nowrap;
+}
+.status::before { content:''; width:5px; height:5px; border-radius:50%; }
+.status.success { background: rgba(48,196,106,.12); color: var(--green); border: 1px solid rgba(48,196,106,.2); }
+.status.success::before { background: var(--green); }
+.status.fail    { background: rgba(242,72,72,.12);  color: var(--red);   border: 1px solid rgba(242,72,72,.2); }
+.status.fail::before    { background: var(--red); }
+.status.pending { background: rgba(255,197,61,.12); color: var(--yellow); border: 1px solid rgba(255,197,61,.2); }
+.status.pending::before { background: var(--yellow); }
+
+/* 빈 / 로딩 */
+.placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 72px 20px; color: var(--text3);
+}
+.placeholder-icon { font-size: 40px; filter: grayscale(1); opacity: .5; }
+.placeholder-text { font-size: 14px; color: var(--text2); }
+.placeholder-sub  { font-size: 12px; color: var(--text3); }
+.spinner {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 페이지네이션 */
+.pager {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 14px; border-top: 1px solid var(--border);
+}
+.pg-btn {
+  min-width: 32px; height: 32px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--bg3); color: var(--text2); transition: all .15s;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0 8px;
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pg-btn:disabled { opacity: .25; cursor: not-allowed; }
+.pg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(240,115,64,.3); }
+.pg-sep { color: var(--text3); padding: 0 3px; }
+
+/* 에러 */
+.error-box {
+  background: rgba(242,72,72,.08); border: 1px solid rgba(242,72,72,.25);
+  border-radius: var(--r); padding: 13px 18px; color: #ff7070;
+  font-size: 13px; margin-bottom: 16px; display: none; border-left: 3px solid var(--red);
+}
+
+/* ══════════ MODAL ══════════ */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  display: none; place-items: center; z-index: 100;
+  backdrop-filter: blur(6px);
+  animation: fadein .15s;
+}
+.modal-bg.show { display: grid; }
+@keyframes fadein { from { opacity:0; } to { opacity:1; } }
+
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 18px; width: 820px; max-width: 95vw; max-height: 90vh;
+  overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  animation: slideup .2s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes slideup { from { transform: translateY(16px); opacity:0; } to { transform:none; opacity:1; } }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 15px; font-weight: 800; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 14px;
+  display: grid; place-items: center; transition: background .15s;
+}
+.modal-close:hover { background: var(--bg4); color: var(--text); }
+
+.modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 20px; }
+
+/* 카카오 알림톡 미리보기 */
+.kakao-wrap { display: flex; justify-content: center; }
+.kakao-phone {
+  background: #b2c7d9;
+  border-radius: 20px;
+  padding: 18px 14px 22px;
+  width: 290px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.4);
+  position: relative;
+}
+.kakao-phone::before {
+  content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  width: 50px; height: 4px; background: rgba(0,0,0,.15); border-radius: 2px;
+}
+.kakao-time {
+  text-align: center; font-size: 10px; color: rgba(0,0,0,.4);
+  margin: 8px 0 10px; font-weight: 500;
+}
+.kakao-bubble-wrap { display: flex; align-items: flex-start; gap: 7px; }
+.kakao-profile {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  background: #fff;
+  display: grid; place-items: center; overflow: hidden;
+}
+.kakao-right { flex: 1; min-width: 0; }
+.kakao-sender { font-size: 11px; font-weight: 700; color: #333; margin-bottom: 5px; }
+.kakao-msg {
+  background: #fff; border-radius: 4px 14px 14px 14px;
+  padding: 12px 14px; font-size: 12.5px; line-height: 1.7; color: #191919;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12); white-space: pre-wrap; word-break: break-all;
+}
+.kakao-msg-type {
+  display: inline-block; background: #fee500; color: #333;
+  font-size: 9px; font-weight: 800; padding: 2px 6px;
+  border-radius: 3px; margin-bottom: 6px; letter-spacing: .3px;
+}
+.kakao-buttons { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+.kakao-btn {
+  background: #fff; border: 1px solid #ddd; border-radius: 8px;
+  padding: 9px 12px; font-size: 12px; color: #333; text-align: center;
+  cursor: pointer; font-weight: 600;
+}
+
+/* 메타 정보 */
+.meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.meta-item {
+  background: var(--bg3); border-radius: 8px; padding: 11px 14px;
+}
+.meta-item.full { grid-column: 1 / -1; }
+.meta-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.meta-value { font-size: 13px; color: var(--text); font-weight: 500; word-break: break-all; }
+
+/* attributes 테이블 */
+.attrs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.attrs-table th { text-align: left; padding: 6px 10px; color: var(--text3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
+.attrs-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+.attrs-table tr:last-child td { border-bottom: none; }
+.attrs-table td:first-child { color: var(--accent2); font-family: monospace; }
+
+/* ══════════ EMAIL PREVIEW ══════════ */
+.email-wrap { background: #f0f2f5; border-radius: 12px; padding: 16px; }
+.email-client {
+  background: #fff; border-radius: 10px;
+  overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  font-family: -apple-system, 'Apple SD Gothic Neo', sans-serif;
+}
+.email-topbar {
+  background: #2d2d2d; padding: 10px 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.email-dot { width: 10px; height: 10px; border-radius: 50%; }
+.email-dot.r { background: #ff5f57; }
+.email-dot.y { background: #febc2e; }
+.email-dot.g { background: #28c840; }
+.email-head {
+  padding: 18px 22px 14px; border-bottom: 1px solid #eee;
+  background: #fafafa;
+}
+.email-subject-line {
+  font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px;
+  line-height: 1.4;
+}
+.email-meta-row {
+  display: flex; align-items: baseline; gap: 8px;
+  font-size: 12px; color: #888; margin-bottom: 5px;
+}
+.email-meta-row strong { color: #444; font-weight: 600; min-width: 36px; }
+.email-sender-avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%; background: #e07b39;
+  color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.email-body-area {
+  padding: 22px; font-size: 13.5px; line-height: 1.8; color: #222;
+  white-space: pre-wrap; word-break: break-word; min-height: 80px;
+  max-height: 340px; overflow-y: auto;
+}
+.email-body-html { /* HTML 이메일 격리 */ all: initial; display: block; font-family: inherit; }
+
+/* ══════════ UTILITY ══════════ */
+.mt8 { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 상단 -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">
+        <img class="logo-img" src="https://ceo.hunet.co.kr/static/images/intro/hunet-ceo-logo.png" alt="휴넷CEO" onerror="this.style.display='none'">
+        <div class="logo-name">Noti<span>Centre</span> 대시보드</div>
+      </div>
+      <div class="divider-v"></div>
+      <div class="topbar-sub">발송 결과 대시보드</div>
+    </div>
+    <div class="pill"><span class="dot"></span>localhost:8084</div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('single')">단건 발송 결과</button>
+    <button class="tab"        onclick="switchTab('batch')">배치 스케줄</button>
+  </div>
+
+  <!-- 필터 -->
+  <div class="filter-bar">
+    <div class="field">
+      <label>시작일</label>
+      <input type="date" class="inp-base" id="startDate">
+    </div>
+    <div class="field">
+      <label>종료일</label>
+      <input type="date" class="inp-base" id="endDate">
+    </div>
+    <div class="field">
+      <label>키워드</label>
+      <input type="text" class="inp-base" id="keyword" placeholder="수신번호, 이름 등…">
+    </div>
+    <div class="field">
+      <label>메시지 타입</label>
+      <select class="inp-base" id="msgType">
+        <option value="">전체</option>
+        <option value="sms">SMS</option>
+        <option value="mms">MMS</option>
+        <option value="kakao">카카오 알림톡</option>
+        <option value="email">이메일</option>
+        <option value="push">앱푸시</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>페이지 크기</label>
+      <select class="inp-base" id="pageSize">
+        <option value="20">20건</option>
+        <option value="50">50건</option>
+        <option value="100">100건</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>franchiseTypeId</label>
+      <div class="ft-badge">고정 <strong>30</strong></div>
+    </div>
+    <button class="btn btn-primary" onclick="search()">🔍 조회</button>
+    <button class="btn btn-ghost"   onclick="resetFilters()">초기화</button>
+  </div>
+
+  <!-- 에러 -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- 카드 -->
+  <div class="cards" id="cards" style="display:none">
+    <div class="card c-orange">
+      <div class="card-label">전체 건수</div>
+      <div class="card-value" id="cTotal">—</div>
+      <div class="card-sub">totalElements</div>
+    </div>
+    <div class="card c-blue">
+      <div class="card-label">현재 페이지</div>
+      <div class="card-value" id="cPage">—</div>
+      <div class="card-sub">/ <span id="cTotalPages">—</span> 페이지</div>
+    </div>
+    <div class="card c-green">
+      <div class="card-label">조회 건수</div>
+      <div class="card-value" id="cSize">—</div>
+      <div class="card-sub">이번 응답</div>
+    </div>
+    <div class="card c-purple">
+      <div class="card-label">마지막 조회</div>
+      <div class="card-value" id="cTime" style="font-size:16px;letter-spacing:0;margin-top:5px">—</div>
+      <div class="card-sub" id="cDateRange">—</div>
+    </div>
+  </div>
+
+  <!-- 테이블 -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-header-title" id="tableTitle">결과</div>
+      <div class="total-badge" id="totalBadge"></div>
+    </div>
+    <div id="tableBody">
+      <div class="placeholder">
+        <div class="placeholder-icon">📭</div>
+        <div class="placeholder-text">조회 버튼을 눌러주세요</div>
+        <div class="placeholder-sub">시작일·종료일 설정 후 조회하면 결과가 표시됩니다</div>
+      </div>
+    </div>
+    <div class="pager" id="pager" style="display:none"></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- ══════════ MODAL ══════════ -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">발송 내용 미리보기</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ── 상수 ─────────────────────────────────────────────────────────────────────
+const API_BASE   = 'https://apigw.hunet.co.kr';
+const FT_ID      = 30;
+const HIDE_COLS  = new Set(['attributes','failbackData','notiReceiverList','buttons',
+  'franchiseTypeId','franchiseTypeID','FranchiseTypeId','FRANCHISETYPEID',
+  'referenceId','referenceID','ReferenceId','REFERENCEID']);
+const MSG_FIELDS = ['content','body','message','templateContent','notiContent','msg','text'];
+const COL_MAP    = {
+  id:'ID', notiScheduleId:'스케줄ID', receiver:'수신번호',
+  notiTemplateName:'템플릿명', templateName:'템플릿명', name:'이름',
+  sendDate:'발송일시', createdAt:'생성일시', updatedAt:'수정일시',
+  status:'상태', messageType:'메시지유형', notiMessageTypeName:'메시지유형',
+  notiMessageTypeId:'메시지타입', messageTypeId:'메시지타입',
+  sender:'발신번호', resultMessage:'결과메시지', errorMessage:'오류메시지',
+  requestdate:'요청일시', created:'생성일시',
+  Body:'본문', body:'본문', notiTemplateId:'템플릿ID', notiTemplateID:'템플릿ID',
+};
+// notiMessageTypeId 숫자 → 표시명
+const TYPE_NAMES = { 1:'SMS', 2:'MMS', 3:'카카오 알림톡', 4:'이메일', 5:'앱푸시' };
+
+// ── 상태 ─────────────────────────────────────────────────────────────────────
+let currentTab  = 'single';
+let currentPage = 0;
+let cachedRows  = [];
+
+// ── 초기화 ────────────────────────────────────────────────────────────────────
+(function init() {
+  const today = fmt(new Date());
+  const m1    = fmt(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  document.getElementById('startDate').value = m1;
+  document.getElementById('endDate').value   = today;
+  document.getElementById('keyword').addEventListener('keydown', e => { if (e.key==='Enter') search(); });
+})();
+
+function fmt(d) { return d.toISOString().slice(0,10); }
+
+function switchTab(tab) {
+  currentTab = tab; currentPage = 0;
+  document.querySelectorAll('.tab').forEach((el,i) =>
+    el.classList.toggle('active', (i===0&&tab==='single')||(i===1&&tab==='batch')));
+  clearResult();
+}
+
+function resetFilters() {
+  const today = fmt(new Date());
+  const m1    = fmt(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  document.getElementById('startDate').value = m1;
+  document.getElementById('endDate').value   = today;
+  document.getElementById('keyword').value   = '';
+  document.getElementById('pageSize').value  = '20';
+  currentPage = 0; clearResult();
+}
+
+function clearResult() {
+  document.getElementById('cards').style.display = 'none';
+  document.getElementById('pager').style.display = 'none';
+  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('totalBadge').textContent = '';
+  setPlaceholder('📭','조회 버튼을 눌러주세요','시작일·종료일 설정 후 조회하면 결과가 표시됩니다');
+  cachedRows = [];
+}
+
+// ── 조회 ─────────────────────────────────────────────────────────────────────
+// notiMessageTypeId 공식 매핑: 1=SMS 2=MMS 3=KAKAO 4=EMAIL 5=APPPUSH
+const TYPE_MAP = { 1:'sms', 2:'mms', 3:'kakao', 4:'email', 5:'push' };
+
+// 행의 메시지 타입 감지
+function detectMsgType(row) {
+  const tid = Number(row.notiMessageTypeId ?? row.messageTypeId ?? 0);
+  if (TYPE_MAP[tid]) return TYPE_MAP[tid];
+  // fallback: 텍스트 필드 기반
+  const typeNm = String(row.notiMessageTypeName ?? row.messageType ?? '').toLowerCase();
+  if (/kakao|카카오|알림톡/.test(typeNm)) return 'kakao';
+  if (/email|이메일|mail/.test(typeNm))   return 'email';
+  if (/push|푸시/.test(typeNm))           return 'push';
+  if (/\bmms\b/.test(typeNm))             return 'mms';
+  if (/\bsms\b/.test(typeNm))             return 'sms';
+  return 'unknown';
+}
+
+// 프론트엔드 msgType 문자열 → notiMessageTypeId 숫자 (역방향 매핑)
+const MSG_TYPE_ID = { sms:1, mms:2, kakao:3, email:4, push:5 };
+
+async function search(page) {
+  if (page !== undefined) currentPage = page;
+  const startDate = document.getElementById('startDate').value;
+  const endDate   = document.getElementById('endDate').value;
+  const keyword   = document.getElementById('keyword').value.trim();
+  const msgType   = document.getElementById('msgType')?.value ?? '';
+  const size      = document.getElementById('pageSize').value;
+  const ep        = currentTab==='single'
+    ? `${API_BASE}/ceoapi/noti/result`
+    : `${API_BASE}/ceoapi/noti/batch/schedules`;
+
+  const p = new URLSearchParams({startDate, endDate, franchiseTypeId: FT_ID, page: currentPage, size});
+  if (keyword) p.set('keyword', keyword);
+
+  // 메시지 타입 → notiMessageTypeId 서버 파라미터로 변환 (1~5 모두 명확)
+  const typeId = MSG_TYPE_ID[msgType];
+  if (typeId) p.set('notiMessageTypeId', typeId);
+
+  showLoading(); hideError();
+
+  try {
+    const res  = await fetch(`${ep}?${p}`);
+    const json = await res.json();
+    if (!res.ok) { showError(`API ${res.status}: ${json.message ?? JSON.stringify(json)}`); setPlaceholder('⚠️','API 오류','응답을 확인하세요'); return; }
+
+    const body = json.data ?? json;
+    let   rows = body.content ?? (Array.isArray(body) ? body : [body]);
+
+    const total = body.totalPages ?? 1;
+    cachedRows  = rows;
+
+    updateCards(body, startDate, endDate);
+    renderTable(rows);
+    renderPager(body.number ?? currentPage, total);
+  } catch(e) {
+    showError(`연결 오류: ${e.message}`);
+    setPlaceholder('🔌','API 연결 실패','서버가 실행 중인지 확인하세요');
+  }
+}
+
+// ── 카드 ─────────────────────────────────────────────────────────────────────
+function updateCards(body, s, e) {
+  const total = body.totalElements ?? '—';
+  const page  = (body.number ?? currentPage) + 1;
+  const pages = body.totalPages ?? 1;
+  const size  = body.numberOfElements ?? body.content?.length ?? '—';
+  document.getElementById('cTotal').textContent      = total.toLocaleString?.() ?? total;
+  document.getElementById('cPage').textContent       = page;
+  document.getElementById('cTotalPages').textContent = pages;
+  document.getElementById('cSize').textContent       = size;
+  document.getElementById('cTime').textContent       = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('cDateRange').textContent  = `${s} ~ ${e}`;
+  document.getElementById('cards').style.display     = 'grid';
+  document.getElementById('totalBadge').innerHTML    = `전체 <strong>${typeof total==='number'?total.toLocaleString():total}</strong>건`;
+}
+
+// ── 테이블 ───────────────────────────────────────────────────────────────────
+function renderTable(rows) {
+  document.getElementById('tableTitle').textContent =
+    currentTab==='single' ? '단건 발송 결과' : '배치 스케줄 목록';
+
+  if (!rows?.length) { setPlaceholder('🔍','조회 결과가 없습니다','기간이나 키워드를 변경해보세요'); return; }
+
+  // 컬럼 우선순위 정의
+  const TMPL_KEYS  = new Set(['notiTemplateId','notiTemplateID','templateId','TemplateID']);
+  const TITLE_KEYS = new Set(['title','Title','subject','Subject','emailTitle','emailSubject']);
+  const BODY_KEYS  = new Set(['Body','body','content','message','templateContent','notiContent','msg']);
+  const DATE_KEYS  = new Set(['requestdate','created','createdAt','updatedAt','sendDate']);
+
+  let rawCols = [...new Set(rows.flatMap(r=>Object.keys(r)))].filter(c=>!HIDE_COLS.has(c));
+
+  // 컬럼 정렬: 기타(첫번째) → 템플릿ID → 타이틀 → Body → 나머지 → 날짜
+  const tmplCols  = rawCols.filter(c=>TMPL_KEYS.has(c));
+  const titleCols = rawCols.filter(c=>TITLE_KEYS.has(c));
+  const bodyCols  = rawCols.filter(c=>BODY_KEYS.has(c));
+  const dateCols  = rawCols.filter(c=>DATE_KEYS.has(c)&&!TMPL_KEYS.has(c)&&!TITLE_KEYS.has(c)&&!BODY_KEYS.has(c));
+  const rest      = rawCols.filter(c=>!TMPL_KEYS.has(c)&&!TITLE_KEYS.has(c)&&!BODY_KEYS.has(c)&&!DATE_KEYS.has(c));
+  const cols      = [...rest.filter((_,i)=>i===0), ...tmplCols, ...titleCols, ...bodyCols,
+                     ...rest.filter((_,i)=>i!==0), ...dateCols];
+
+  const WIDE_KEYS = c => BODY_KEYS.has(c) || TITLE_KEYS.has(c);
+  const thStyle = c => WIDE_KEYS(c) ? ' style="min-width:380px;width:380px"' : '';
+  const tdStyle = c => WIDE_KEYS(c) ? ' style="min-width:380px;width:380px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px"' : '';
+  const isSingle = currentTab === 'single';
+
+  const thead = `<thead><tr>${cols.map(c=>`<th${thStyle(c)}>${COL_MAP[c]??c}</th>`).join('')}</tr></thead>`;
+  const WIDE_STYLE = 'min-width:380px;width:380px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px';
+  const tbody = `<tbody>${rows.map((row,i)=>{
+    const isEmailRow  = isSingle && detectMsgType(row) === 'email';
+    const cells = cols.map(c=>{
+      const isClickable = isSingle && (TITLE_KEYS.has(c) || BODY_KEYS.has(c));
+      const isWide      = WIDE_KEYS(c);
+      // style과 onclick을 하나의 속성 블록으로 합산
+      const styleStr  = isWide ? WIDE_STYLE : '';
+      const cursorStr = isClickable ? 'cursor:pointer;' : '';
+      const styleAttr = (styleStr || cursorStr) ? ` style="${cursorStr}${styleStr}"` : '';
+      const clickAttr = isClickable ? ` onclick="openModal(${i})"` : '';
+      // 이메일 행 본문 컬럼 → 고정 문구
+      const content   = (isEmailRow && BODY_KEYS.has(c))
+        ? '<span style="color:var(--text3);font-style:italic">[상세내역 확인]</span>'
+        : fmtCell(c, row[c]);
+      return `<td class="${getCellClass(c,row[c])}"${styleAttr}${clickAttr}>${content}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('')}</tbody>`;
+
+  document.getElementById('tableBody').innerHTML =
+    `<div class="tbl-scroll" id="tblScroll"><table>${thead}${tbody}</table></div>`;
+
+  // 드래그 좌우 스크롤
+  const scroller = document.getElementById('tblScroll');
+  let isDragging = false, startX = 0, scrollLeft = 0;
+  scroller.addEventListener('mousedown', e => {
+    isDragging = true; startX = e.pageX - scroller.offsetLeft; scrollLeft = scroller.scrollLeft;
+    scroller.classList.add('dragging');
+  });
+  document.addEventListener('mouseup', () => { isDragging = false; scroller.classList.remove('dragging'); });
+  scroller.addEventListener('mouseleave', () => { isDragging = false; scroller.classList.remove('dragging'); });
+  scroller.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scroller.offsetLeft;
+    scroller.scrollLeft = scrollLeft - (x - startX);
+  });
+}
+
+function getCellClass(k, v) {
+  if (/phone|receiver|mobile|번호/.test(k)) return 'mono';
+  if (k==='id'||/Id$/.test(k)) return 'mono';
+  if (/name|title|template/.test(k.toLowerCase())) return 'bold';
+  return '';
+}
+
+// KST 변환이 필요한 필드명 (소문자 비교)
+const KST_FIELDS = new Set(['requestdate','created','createdat','updatedat','senddate','sendat']);
+
+function toKST(str) {
+  // Unix timestamp(ms) 숫자 문자열이면 Number로 변환
+  const raw = /^\d{10,13}$/.test(String(str).trim()) ? Number(str) : str;
+  const d = new Date(raw);
+  if (isNaN(d)) return str;
+  const p = n => String(n).padStart(2,'0');
+  const kst = new Date(d.toLocaleString('en-US', {timeZone:'Asia/Seoul'}));
+  return `${kst.getFullYear()}-${p(kst.getMonth()+1)}-${p(kst.getDate())} ${p(kst.getHours())}:${p(kst.getMinutes())}:${p(kst.getSeconds())}`;
+}
+
+function fmtCell(k, v) {
+  if (v===null||v===undefined) return `<span style="color:var(--text3)">—</span>`;
+  // 메시지 타입 ID → 표시명
+  if (k==='notiMessageTypeId'||k==='messageTypeId') {
+    const name = TYPE_NAMES[Number(v)] ?? String(v);
+    return `<span style="color:var(--accent)">${name}</span>`;
+  }
+  if (k==='status') {
+    const s = String(v).toLowerCase();
+    const cls = s.includes('success')||s.includes('완료')||s==='sent' ? 'success'
+              : s.includes('fail')||s.includes('실패') ? 'fail' : 'pending';
+    return `<span class="status ${cls}">${v}</span>`;
+  }
+  if (typeof v==='object') return `<span style="color:var(--text3);font-size:11px">{…}</span>`;
+  const str = String(v);
+  // KST 변환 대상 필드 (white-space:nowrap으로 한 줄 고정)
+  if (KST_FIELDS.has(k.toLowerCase()) && str.trim()) return `<span style="color:var(--text2);font-size:12px;white-space:nowrap">${toKST(str)}</span>`;
+  // ISO 날짜·Unix timestamp 자동 감지
+  if (/^\d{4}-\d{2}-\d{2}T/.test(str)||/^\d{10,13}$/.test(str)) return `<span style="color:var(--text2);font-size:12px;white-space:nowrap">${toKST(str)}</span>`;
+  return str;
+}
+
+// ── 페이지네이션 ──────────────────────────────────────────────────────────────
+function renderPager(page, total) {
+  const el = document.getElementById('pager');
+  if (total<=1) { el.style.display='none'; return; }
+  el.style.display='flex';
+  const b = (label,pg,active=false,disabled=false) =>
+    `<button class="pg-btn${active?' active':''}" ${disabled?'disabled':`onclick="search(${pg})"`}>${label}</button>`;
+  const lo=Math.max(0,page-2), hi=Math.min(total-1,page+2);
+  let h = b('‹',page-1,false,page===0);
+  if (lo>0) h+=b(1,0)+(lo>1?'<span class="pg-sep">…</span>':'');
+  for (let i=lo;i<=hi;i++) h+=b(i+1,i,i===page);
+  if (hi<total-1) h+=(hi<total-2?'<span class="pg-sep">…</span>':'')+b(total,total-1);
+  h+=b('›',page+1,false,page>=total-1);
+  el.innerHTML=h;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(i) {
+  const row = cachedRows[i];
+  if (!row) return;
+
+  // 메시지 본문 탐색
+  const msgField  = MSG_FIELDS.find(f=>row[f]&&typeof row[f]==='string');
+  const msgBody   = msgField ? row[msgField] : null;
+  const attrs     = row.attributes && typeof row.attributes==='object' ? row.attributes : null;
+  const buttons   = row.buttons && Array.isArray(row.buttons) ? row.buttons : null;
+  const template  = row.notiTemplateName ?? row.templateName ?? '알림톡';
+  const receiver  = row.receiver ?? '—';
+  const status    = row.status ?? '—';
+  const sendDate  = row.sendDate ?? row.createdAt ?? '—';
+
+  // 본문 구성: attrs를 치환한 msgBody 또는 attrs 나열
+  let displayBody = msgBody;
+  if (!displayBody && attrs) {
+    displayBody = Object.entries(attrs)
+      .map(([k,v])=>`${k}: ${v}`)
+      .join('\n');
+  }
+  if (!displayBody) displayBody = '(본문 정보 없음)';
+
+  // 실제 속 변수 치환 시뮬레이션
+  if (msgBody && attrs) {
+    let substituted = msgBody;
+    Object.entries(attrs).forEach(([k,v])=>{
+      substituted = substituted.replaceAll(k, String(v));
+    });
+    displayBody = substituted;
+  }
+
+  const now = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+
+  // notiMessageTypeId 기반 타입 결정
+  const msgKind = detectMsgType(row); // 'kakao' | 'email' | 'sms' | 'mms' | 'push' | 'unknown'
+  const isKakao = msgKind === 'kakao';
+  const isEmail = msgKind === 'email';
+
+  // 이메일 제목 탐색
+  const emailSubject = row.title ?? row.subject ?? row.emailTitle ?? row.emailSubject ?? template;
+  // 이메일 수신자
+  const emailTo = row.receiver ?? row.email ?? row.emailReceiver ?? '—';
+  // 발송일시 포맷 (toKST 통일)
+  const sentAt = sendDate !== '—' ? toKST(String(sendDate)) : now;
+
+  // ── 이메일 미리보기 ──
+  const emailHtml = `
+    <div class="email-wrap">
+      <div class="email-client">
+        <div class="email-topbar">
+          <div class="email-dot r"></div><div class="email-dot y"></div><div class="email-dot g"></div>
+        </div>
+        <div class="email-head">
+          <div class="email-subject-line">${escHtml(emailSubject)}</div>
+          <div class="email-meta-row">
+            <div class="email-sender-avatar">H</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#222">휴넷CEO <span style="color:#aaa;font-weight:400">&lt;webmaster@hunet.co.kr&gt;</span></div>
+              <div style="font-size:11px;color:#aaa;margin-top:2px">${sentAt}</div>
+            </div>
+          </div>
+          <div class="email-meta-row" style="margin-top:6px"><strong>받는사람</strong><span>${escHtml(emailTo)}</span></div>
+        </div>
+        <div class="email-body-area" style="padding:0;max-height:520px;overflow-y:auto">
+          <iframe id="emailBodyFrame"
+            sandbox="allow-same-origin"
+            style="width:100%;border:none;min-height:300px;display:block">
+          </iframe>
+        </div>
+      </div>
+    </div>`;
+
+  // ── 카카오 미리보기 ──
+  const kakaoHtml = `
+    <div class="kakao-wrap">
+      <div class="kakao-phone">
+        <div class="kakao-time">${sentAt}</div>
+        <div class="kakao-bubble-wrap">
+          <div class="kakao-profile"><img src="https://www.hunet.co.kr/favicon.ico" width="22" height="22" style="object-fit:contain" onerror="this.replaceWith('🏢')"></div>
+          <div class="kakao-right">
+            <div class="kakao-sender">휴넷CEO</div>
+            <div class="kakao-msg">${escHtml(displayBody)}</div>
+            ${buttons ? `<div class="kakao-buttons">${buttons.map(btn=>`<div class="kakao-btn">${escHtml(btn.name??btn.label??btn)}</div>`).join('')}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // ── SMS / MMS / 앱푸시 제네릭 미리보기 ──
+  const typeLabel = { sms:'SMS', mms:'MMS', push:'앱 푸시', unknown:'메시지' }[msgKind] ?? '메시지';
+  const genericHtml = `
+    <div class="kakao-wrap">
+      <div class="kakao-phone">
+        <div class="kakao-time">${sentAt}</div>
+        <div class="kakao-bubble-wrap">
+          <div class="kakao-profile" style="background:var(--accent2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${typeLabel}</div>
+          <div class="kakao-right">
+            <div class="kakao-sender">휴넷CEO</div>
+            <div class="kakao-msg" style="border-left:3px solid var(--accent2)">${escHtml(displayBody)}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const MODAL_TITLES = { kakao:'카카오 알림톡 미리보기', email:'이메일 미리보기', sms:'SMS 미리보기', mms:'MMS 미리보기', push:'앱푸시 미리보기', unknown:'메시지 미리보기' };
+  const previewHtml  = isEmail ? emailHtml : isKakao ? kakaoHtml : genericHtml;
+
+  // 메타 정보
+  const skip = new Set([...MSG_FIELDS,'buttons','attributes','failbackData']);
+  const metaItems = Object.entries(row)
+    .filter(([k])=>!skip.has(k))
+    .map(([k,v])=>{
+      if (v===null||v===undefined) return '';
+      const str = typeof v==='object' ? JSON.stringify(v) : String(v);
+      const label = COL_MAP[k]??k;
+      const full  = k==='errorMessage'||k==='resultMessage' ? ' full' : '';
+      const val   = (k==='notiMessageTypeId'||k==='messageTypeId')
+        ? `<span style="color:var(--accent)">${TYPE_NAMES[Number(str)] ?? str}</span>`
+        : k==='status'
+          ? (() => { const s=str.toLowerCase(); const c=s.includes('success')||s==='sent'?'success':s.includes('fail')?'fail':'pending'; return `<span class="status ${c}">${str}</span>`; })()
+          : (KST_FIELDS.has(k.toLowerCase())||/^\d{10,13}$/.test(str)||/^\d{4}-\d{2}-\d{2}T/.test(str))
+            ? toKST(str)
+            : escHtml(str);
+      return str ? `<div class="meta-item${full}"><div class="meta-label">${label}</div><div class="meta-value">${val}</div></div>` : '';
+    }).join('');
+
+  // attributes 테이블
+  const attrHtml = attrs ? `
+    <div>
+      <div class="meta-label mt8" style="margin-bottom:8px">치환 변수 (Attributes)</div>
+      <div class="meta-item">
+        <table class="attrs-table">
+          <thead><tr><th>변수</th><th>값</th></tr></thead>
+          <tbody>${Object.entries(attrs).map(([k,v])=>`<tr><td>${escHtml(k)}</td><td>${escHtml(String(v))}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>` : '';
+
+  document.getElementById('modalTitle').textContent = MODAL_TITLES[msgKind] ?? '미리보기';
+  document.getElementById('modalBody').innerHTML = `
+    ${previewHtml}
+    <div class="meta-grid">${metaItems}</div>
+    ${attrHtml}
+  `;
+
+  // 이메일 본문 → iframe srcdoc으로 안전하게 주입 (innerHTML 직접 삽입 방지)
+  if (isEmail) {
+    const frame = document.getElementById('emailBodyFrame');
+    if (frame) {
+      frame.srcdoc = displayBody;
+      frame.onload = () => {
+        try {
+          const h = frame.contentDocument.body.scrollHeight;
+          frame.style.height = (h + 32) + 'px';
+        } catch(e) {}
+      };
+    }
+  }
+
+  document.getElementById('modalBg').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalBg')) return;
+  document.getElementById('modalBg').classList.remove('show');
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') document.getElementById('modalBg').classList.remove('show'); });
+
+// ── 유틸 ─────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function showLoading() {
+  document.getElementById('tableBody').innerHTML =
+    '<div class="placeholder"><div class="spinner"></div><div class="placeholder-text">조회 중…</div></div>';
+  document.getElementById('pager').style.display = 'none';
+  document.getElementById('cards').style.display = 'none';
+}
+function setPlaceholder(icon, text, sub='') {
+  document.getElementById('tableBody').innerHTML =
+    `<div class="placeholder"><div class="placeholder-icon">${icon}</div><div class="placeholder-text">${text}</div>${sub?`<div class="placeholder-sub">${sub}</div>`:''}</div>`;
+}
+function showError(msg) { const b=document.getElementById('errorBox'); b.textContent=msg; b.style.display='block'; }
+function hideError()     { document.getElementById('errorBox').style.display='none'; }
+</script>
+</body>
+</html>
