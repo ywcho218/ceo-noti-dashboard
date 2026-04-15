@@ -524,9 +524,10 @@ let cachedRows  = [];
 
 // ── 초기화 ────────────────────────────────────────────────────────────────────
 (function init() {
-  const today = fmt(new Date());
-  const m1    = fmt(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  document.getElementById('startDate').value = m1;
+  const today  = fmt(new Date());
+  const d7     = new Date(); d7.setDate(d7.getDate() - 7);
+  const minus7 = fmt(d7);
+  document.getElementById('startDate').value = minus7;
   document.getElementById('endDate').value   = today;
   document.getElementById('keyword').addEventListener('keydown', e => { if (e.key==='Enter') search(); });
 
@@ -547,9 +548,10 @@ function switchTab(tab) {
 }
 
 function resetFilters() {
-  const today = fmt(new Date());
-  const m1    = fmt(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  document.getElementById('startDate').value = m1;
+  const today  = fmt(new Date());
+  const d7     = new Date(); d7.setDate(d7.getDate() - 7);
+  const minus7 = fmt(d7);
+  document.getElementById('startDate').value = minus7;
   document.getElementById('endDate').value   = today;
   document.getElementById('keyword').value   = '';
   document.getElementById('pageSize').value  = '20';
