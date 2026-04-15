@@ -390,7 +390,7 @@ td.bold { font-weight: 600; }
       <div class="divider-v"></div>
       <div class="topbar-sub">발송 결과 대시보드</div>
     </div>
-    <div class="pill"><span class="dot"></span>localhost:8084</div>
+    <div class="pill"><span class="dot"></span><span id="clientIp">확인 중…</span></div>
   </div>
 
   <!-- 탭 -->
@@ -529,6 +529,12 @@ let cachedRows  = [];
   document.getElementById('startDate').value = m1;
   document.getElementById('endDate').value   = today;
   document.getElementById('keyword').addEventListener('keydown', e => { if (e.key==='Enter') search(); });
+
+  // 접속 IP 표시
+  fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(d => { document.getElementById('clientIp').textContent = d.ip; })
+    .catch(() => { document.getElementById('clientIp').textContent = '알 수 없음'; });
 })();
 
 function fmt(d) { return d.toISOString().slice(0,10); }
